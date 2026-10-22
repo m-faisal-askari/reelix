@@ -276,7 +276,7 @@ const EditBookingModal = ({
 
             {/* Select Show Timing */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5 flex items-center gap-1.5">
+              <label className=" text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5 flex items-center gap-1.5">
                 <ClockIcon className="w-3.5 h-3.5 text-primary" />
                 Select Show Timing
               </label>
