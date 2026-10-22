@@ -11,10 +11,14 @@ export const isAdmin = async (req, res) => {
 // API to get dashboard data
 export const getDashboardData = async (req, res) => {
   try {
-    const bookings = await Booking.find({ isPaid: true });
+    const bookings = await Booking.find({ isPaid: true }, "amount").lean();
     const shows = await Show.find()
-      .populate("movie")
-      .sort({ showDateTime: 1 });
+      .populate({
+        path: "movie",
+        select: "title poster_path genres vote_average runtime release_date",
+      })
+      .sort({ showDateTime: 1 })
+      .lean();
 
     const movieMap = new Map();
 
@@ -71,8 +75,12 @@ export const getDashboardData = async (req, res) => {
 export const getAllShows = async (req, res) => {
   try {
     const shows = await Show.find()
-      .populate("movie")
-      .sort({ showDateTime: -1 });
+      .populate({
+        path: "movie",
+        select: "title poster_path genres vote_average runtime release_date",
+      })
+      .sort({ showDateTime: -1 })
+      .lean();
 
     res.json({ success: true, shows });
   } catch (error) {
@@ -88,9 +96,10 @@ export const getAllBookings = async (req, res) => {
       .populate("user")
       .populate({
         path: "show",
-        populate: { path: "movie" },
+        populate: { path: "movie", select: "title poster_path" },
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({ success: true, bookings });
   } catch (error) {

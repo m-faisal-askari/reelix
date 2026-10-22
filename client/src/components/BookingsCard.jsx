@@ -1,7 +1,7 @@
 import React from "react";
 import timeFormat from "../lib/timeFormat";
 import { dateFormat } from "../lib/dateFormat";
-import { PencilIcon, Trash2Icon, CheckCircle2Icon, ClockIcon } from "lucide-react";
+import { PencilIcon, Trash2Icon, CheckCircle2Icon, ClockIcon, CreditCardIcon } from "lucide-react";
 
 const BookingsCard = ({ item, onEdit, onCancel }) => {
   const getPosterUrl = (path) => {
@@ -85,8 +85,19 @@ const BookingsCard = ({ item, onEdit, onCancel }) => {
           </div>
         </div>
 
-        {/* Action Buttons: Edit and Cancel */}
+        {/* Action Buttons: Pay Now, Edit, and Cancel */}
         <div className="flex items-center gap-2 mt-4 pt-2">
+          {!item.isPaid && item.paymentLink && (
+            <a
+              href={item.paymentLink}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition cursor-pointer"
+              title="Complete payment for this booking"
+            >
+              <CreditCardIcon className="w-3.5 h-3.5" />
+              <span>Pay Now</span>
+            </a>
+          )}
+
           {onEdit && (
             <button
               onClick={() => onEdit(item)}

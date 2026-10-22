@@ -319,7 +319,7 @@ const EditBookingModal = ({
                 <span>Your Selected Seats</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="h-3.5 w-3.5 rounded bg-gray-800/80 border border-gray-700/60 opacity-50 line-through text-[8px] flex items-center justify-center inline-block">
+                <span className="h-3.5 w-3.5 rounded bg-gray-800/80 border border-gray-700/60 opacity-50 line-through text-[8px] items-center justify-center inline-block">
                   ✕
                 </span>
                 <span>Taken / Disabled</span>

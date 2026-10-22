@@ -8,14 +8,16 @@ const MovieCard = ({ movie }) => {
     if (!path) return "";
     return path.startsWith("http")
       ? path
-      : `https://image.tmdb.org/t/p/w500${path}`;
+      : `https://image.tmdb.org/t/p/w342${path}`;
   };
   const navigate = useNavigate();
   return (
     <div className="flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-66">
       <img
         src={getPosterUrl(movie.poster_path)}
-        alt=""
+        alt={movie.title || "Movie poster"}
+        loading="lazy"
+        decoding="async"
         className="rounded-lg aspect-2/3 w-full object-cover object-center cursor-pointer"
         onClick={() => {
           navigate(`/movies/${movie._id}`);

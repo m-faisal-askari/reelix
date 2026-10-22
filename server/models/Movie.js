@@ -17,8 +17,11 @@ const movieSchema = new mongoose.Schema(
     vote_average: { type: Number, required: true },
     runtime: { type: Number, required: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
+
+// High-performance query index
+movieSchema.index({ release_date: -1 });
 
 const Movie = mongoose.model("Movie", movieSchema);
 

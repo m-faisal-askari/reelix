@@ -67,7 +67,7 @@ const Releases = () => {
     if (!path) return "";
     return path.startsWith("http")
       ? path
-      : `https://image.tmdb.org/t/p/w500${path}`;
+      : `https://image.tmdb.org/t/p/w342${path}`;
   };
 
   const getBackdropUrl = (path) => {
@@ -383,6 +383,8 @@ const Releases = () => {
                           <img
                             src={getPosterUrl(movie.poster_path)}
                             alt={movie.title}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
                             onClick={() => setSelectedMovieForModal(movie)}
                           />
@@ -572,7 +574,7 @@ const Releases = () => {
                       className="rounded-2xl overflow-hidden flex flex-col justify-between bg-primary/10 border border-primary/25 hover:border-primary/50 transition-all duration-300 group hover:-translate-y-1 shadow-lg"
                     >
                       {/* Poster Thumbnail */}
-                      <div className="relative aspect-[2/3] w-full bg-black/40 overflow-hidden">
+                      <div className="relative aspect-2/3 w-full bg-black/40 overflow-hidden">
                         {movie.poster_path ? (
                           <img
                             src={getPosterUrl(movie.poster_path)}
@@ -695,7 +697,7 @@ const Releases = () => {
                   className="w-full h-full object-cover brightness-60"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-primary/30 to-purple-900/40" />
+                <div className="w-full h-full bg-linear-to-r from-primary/30 to-purple-900/40" />
               )}
               <button
                 type="button"
@@ -712,7 +714,7 @@ const Releases = () => {
                 <img
                   src={getPosterUrl(selectedMovieForModal.poster_path)}
                   alt={selectedMovieForModal.title}
-                  className="w-28 sm:w-36 aspect-[2/3] object-cover rounded-xl border-2 border-primary/50 shadow-2xl shrink-0 bg-black/50"
+                  className="w-28 sm:w-36 aspect-2/3 object-cover rounded-xl border-2 border-primary/50 shadow-2xl shrink-0 bg-black/50"
                 />
                 <div className="min-w-0 sm:pt-14">
                   <h2 className="text-2xl font-bold text-white leading-tight">

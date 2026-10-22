@@ -148,6 +148,11 @@ const SeatLayout = () => {
       );
 
       if (data.success) {
+        if (data.url) {
+          toast.success("Redirecting to checkout...");
+          window.location.href = data.url;
+          return;
+        }
         toast.success(data.message || "Seats booked successfully!");
         // Refresh occupied seats immediately
         await getOccupiedSeats(selectedTime.showId);

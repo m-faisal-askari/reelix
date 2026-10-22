@@ -162,9 +162,8 @@ export const AppProvider = ({ children }) => {
 
   const fetchShows = async () => {
     try {
-      const { data } = await axios.get("/api/show/all", {
-        headers: { Authorization: `Bearer ${await getToken()}` },
-      });
+      // /api/show/all is a public endpoint - fetch immediately without waiting for auth token
+      const { data } = await axios.get("/api/show/all");
       if (data.success) {
         setShows(data.shows);
       } else {

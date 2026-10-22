@@ -22,22 +22,40 @@ export const getNowPlayingMovies = async (req, res) => {
   }
 };
 
+// In-memory cache for upcoming TMDB releases (10 minute TTL)
+const upcomingCache = new Map();
+const UPCOMING_CACHE_TTL = 10 * 60 * 1000;
+
 // API to get upcoming releases from TMDB API
 export const getUpcomingMovies = async (req, res) => {
   try {
     const { page = 1 } = req.query;
+    const cacheKey = String(page);
+    const cached = upcomingCache.get(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < UPCOMING_CACHE_TTL) {
+      return res.json(cached.data);
+    }
+
     const { data } = await axios.get(
       `${TMDB_BASE_URL}/movie/upcoming?language=en-US&page=${page}`,
       tmdbHeaders,
     );
 
-    res.json({
+    const responsePayload = {
       success: true,
       movies: data.results || [],
       page: data.page,
       total_pages: data.total_pages,
       total_results: data.total_results,
+    };
+
+    upcomingCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: responsePayload,
     });
+
+    res.json(responsePayload);
   } catch (error) {
     console.error("getUpcomingMovies error:", error.message);
     res.json({ success: false, message: error.message });
@@ -183,8 +201,14 @@ export const addShow = async (req, res) => {
 export const getShows = async (req, res) => {
   try {
     const shows = await Show.find()
-      .populate("movie")
-      .sort({ showDateTime: 1 });
+      .select("-occupiedSeats")
+      .populate({
+        path: "movie",
+        select:
+          "title poster_path backdrop_path genres vote_average runtime release_date tagline",
+      })
+      .sort({ showDateTime: 1 })
+      .lean();
 
     const movieMap = new Map();
 

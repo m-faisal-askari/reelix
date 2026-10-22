@@ -1,8 +1,14 @@
+import "dotenv/config";
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
 import Movie from "../models/Movie.js";
 import User from "../models/User.js";
 import { clerkClient } from "@clerk/express";
+import stripe from "stripe";
+
+const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-06-20",
+});
 
 // Function to check availability of selected seats for movie
 const checkSeatsAvailability = async (showId, selectedSeats) => {
@@ -78,13 +84,13 @@ export const createBooking = async (req, res) => {
       }
     }
 
-    // Create new booking with isPaid: true
+    // Create new booking with isPaid: false
     const booking = await Booking.create({
       user: userId,
       show: showId,
       amount: (showData.showPrice || 0) * selectedSeats.length,
       bookedSeats: selectedSeats,
-      isPaid: true,
+      isPaid: false,
     });
 
     if (!showData.occupiedSeats) {
@@ -98,10 +104,42 @@ export const createBooking = async (req, res) => {
     showData.markModified("occupiedSeats");
     await showData.save();
 
+    // Stripe checkout session integration
+    const origin = req.headers.origin || "http://localhost:5173";
+
+    const line_items = [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: showData.movie?.title || "Movie Ticket",
+          },
+          unit_amount: Math.max(50, Math.round(booking.amount * 100)),
+        },
+        quantity: 1,
+      },
+    ];
+
+    const session = await stripeInstance.checkout.sessions.create({
+      payment_method_types: ["card"],
+      success_url: `${origin}/loading/my-bookings?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/my-bookings`,
+      line_items: line_items,
+      mode: "payment",
+      metadata: {
+        bookingId: booking._id.toString(),
+      },
+      expires_at: Math.floor(Date.now() / 1000 + 30 * 60),
+    });
+
+    booking.paymentLink = session.url;
+    await booking.save();
+
     res.json({
       success: true,
-      message: "Seats booked successfully!",
+      url: session.url,
       bookingId: booking._id,
+      message: "Checkout session created successfully!",
     });
   } catch (error) {
     console.error("createBooking error:", error.message);
@@ -274,6 +312,66 @@ export const performBookingCancel = async ({ bookingId, userId }) => {
 
   await Booking.findByIdAndDelete(bookingId);
   return true;
+};
+
+// API: Verify Stripe payment status and confirm booking
+export const verifyStripePayment = async (req, res) => {
+  try {
+    const { sessionId, bookingId } = req.body;
+
+    if (!sessionId && !bookingId) {
+      return res.json({
+        success: false,
+        message: "Session ID or Booking ID is required",
+      });
+    }
+
+    if (sessionId) {
+      const session = await stripeInstance.checkout.sessions.retrieve(sessionId);
+      if (!session) {
+        return res.json({ success: false, message: "Stripe session not found" });
+      }
+
+      const targetBookingId = session.metadata?.bookingId || bookingId;
+
+      if (session.payment_status === "paid") {
+        let booking = null;
+        if (targetBookingId) {
+          booking = await Booking.findById(targetBookingId);
+          if (booking) {
+            booking.isPaid = true;
+            await booking.save();
+          }
+        }
+        return res.json({
+          success: true,
+          message: "Payment confirmed successfully!",
+          booking,
+        });
+      } else {
+        return res.json({
+          success: false,
+          message: `Payment status: ${session.payment_status}`,
+        });
+      }
+    }
+
+    if (bookingId) {
+      const booking = await Booking.findById(bookingId);
+      if (booking && booking.isPaid) {
+        return res.json({
+          success: true,
+          message: "Booking is already confirmed",
+          booking,
+        });
+      }
+    }
+
+    return res.json({ success: false, message: "Payment verification failed" });
+  } catch (error) {
+    console.error("verifyStripePayment error:", error.message);
+    res.json({ success: false, message: error.message });
+  }
 };
 
 // API: Get booking details and available shows for editing
