@@ -378,7 +378,7 @@ const Releases = () => {
                       className="rounded-2xl overflow-hidden flex flex-col justify-between bg-primary/10 border border-primary/20 hover:border-primary/50 transition-all duration-300 group hover:-translate-y-1 shadow-lg"
                     >
                       {/* Poster Thumbnail */}
-                      <div className="relative aspect-[2/3] w-full bg-black/40 overflow-hidden">
+                      <div className="relative aspect-2/3 w-full bg-black/40 overflow-hidden">
                         {movie.poster_path ? (
                           <img
                             src={getPosterUrl(movie.poster_path)}

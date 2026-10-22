@@ -225,7 +225,104 @@ export const getShow = async (req, res) => {
       movie: movieId,
     }).sort({ showDateTime: 1 });
 
-    const movie = await Movie.findById(movieId);
+    let movie = await Movie.findById(movieId);
+
+    if (movie) {
+      // Ensure backdrop_path, images, and trailerUrl are available
+      let updatedFields = {};
+      let images = Array.isArray(movie.images) && movie.images.length > 0 ? movie.images : [];
+      let backdrop_path = movie.backdrop_path || "";
+
+      if (!backdrop_path || images.length === 0) {
+        try {
+          // Fetch backdrop & gallery images from TMDB
+          let tmdbImagesRes;
+          try {
+            tmdbImagesRes = await axios.get(
+              `${TMDB_BASE_URL}/movie/${movieId}/images`,
+              tmdbHeaders
+            );
+          } catch {
+            tmdbImagesRes = await axios.get(
+              `${TMDB_BASE_URL}/tv/${movieId}/images`,
+              tmdbHeaders
+            );
+          }
+
+          if (tmdbImagesRes?.data?.backdrops?.length > 0) {
+            images = tmdbImagesRes.data.backdrops.slice(0, 12).map((b) => b.file_path);
+          } else if (tmdbImagesRes?.data?.posters?.length > 0) {
+            images = tmdbImagesRes.data.posters.slice(0, 12).map((p) => p.file_path);
+          }
+
+          if (!backdrop_path) {
+            if (images.length > 0) {
+              backdrop_path = images[0];
+            } else {
+              try {
+                const tmdbDetail = await axios.get(
+                  `${TMDB_BASE_URL}/movie/${movieId}`,
+                  tmdbHeaders
+                );
+                backdrop_path = tmdbDetail.data.backdrop_path || "";
+              } catch {
+                const tmdbTv = await axios.get(
+                  `${TMDB_BASE_URL}/tv/${movieId}`,
+                  tmdbHeaders
+                );
+                backdrop_path = tmdbTv.data.backdrop_path || "";
+              }
+            }
+          }
+
+          if (images.length > 0) updatedFields.images = images;
+          if (backdrop_path) updatedFields.backdrop_path = backdrop_path;
+        } catch (tmdbErr) {
+          console.warn("Could not enrich TMDB images:", tmdbErr.message);
+        }
+      }
+
+      // Fetch trailer video from TMDB (runs independently of images)
+      let trailerUrl = movie.trailerUrl || "";
+      if (!trailerUrl) {
+        try {
+          let tmdbVideosRes;
+          try {
+            tmdbVideosRes = await axios.get(
+              `${TMDB_BASE_URL}/movie/${movieId}/videos`,
+              tmdbHeaders
+            );
+          } catch {
+            tmdbVideosRes = await axios.get(
+              `${TMDB_BASE_URL}/tv/${movieId}/videos`,
+              tmdbHeaders
+            );
+          }
+
+          const videos = tmdbVideosRes?.data?.results || [];
+          const trailer =
+            videos.find(
+              (v) =>
+                v.site === "YouTube" &&
+                (v.type === "Trailer" || v.type === "Teaser")
+            ) ||
+            videos.find((v) => v.site === "YouTube") ||
+            videos[0];
+
+          if (trailer?.key) {
+            trailerUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
+            updatedFields.trailerUrl = trailerUrl;
+          }
+        } catch (vidErr) {
+          console.warn("Could not fetch TMDB trailer:", vidErr.message);
+        }
+      }
+
+      if (Object.keys(updatedFields).length > 0) {
+        await Movie.findByIdAndUpdate(movieId, updatedFields);
+        movie = await Movie.findById(movieId);
+      }
+    }
 
     const dateTime = {};
 

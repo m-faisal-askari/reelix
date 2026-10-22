@@ -6,6 +6,9 @@ const movieSchema = new mongoose.Schema(
     title: { type: String, required: true },
     overview: { type: String, required: true },
     poster_path: { type: String, required: true },
+    backdrop_path: { type: String, default: "" },
+    images: { type: Array, default: [] },
+    trailerUrl: { type: String, default: "" },
     release_date: { type: String, required: true },
     original_language: { type: String },
     tagline: { type: String },
@@ -17,6 +20,6 @@ const movieSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Movie = mongoose.model("Movie", movieSchema)
+const Movie = mongoose.model("Movie", movieSchema);
 
 export default Movie;
