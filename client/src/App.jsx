@@ -20,6 +20,7 @@ const Theaters = lazy(() => import("./pages/Theaters.jsx"));
 const Releases = lazy(() => import("./pages/Releases"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const LoadingMyBookings = lazy(() => import("./pages/LoadingMyBookings"));
+const NotFound = lazy(() => import("./components/NotFound"));
 
 // Heavy Admin panel completely isolated and lazy-loaded
 const Layout = lazy(() => import("./pages/admin/Layout.jsx"));
@@ -70,7 +71,9 @@ const App = () => {
             <Route path="search-movies" element={<SearchMovies />} />
             <Route path="theaters" element={<AdminTheaters />} />
             <Route path="trailers" element={<AdminTrailers />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
       {!isAdminRoute && <Footer />}

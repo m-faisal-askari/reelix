@@ -12,7 +12,7 @@ import adminRouter from "./routes/adminRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // High-performance gzip/brotli compression middleware
 app.use(compression());
