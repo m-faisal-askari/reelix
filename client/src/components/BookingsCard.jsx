@@ -1,56 +1,117 @@
-import React from 'react'
-import timeFormat from '../lib/timeFormat'
-import isoTimeFormat from '../lib/isoTimeFormat';
-import { dateFormat } from '../lib/dateFormat';
-import { Currency } from 'lucide-react';
+import React from "react";
+import timeFormat from "../lib/timeFormat";
+import { dateFormat } from "../lib/dateFormat";
+import { PencilIcon, Trash2Icon, CheckCircle2Icon, ClockIcon } from "lucide-react";
 
-const BookingsCard = ({item}) => {
+const BookingsCard = ({ item, onEdit, onCancel }) => {
+  const getPosterUrl = (path) => {
+    if (!path) return "";
+    return path.startsWith("http")
+      ? path
+      : `https://image.tmdb.org/t/p/w500${path}`;
+  };
 
-    const currency = import.meta.env.VITE_CURRENCY
+  const currency = import.meta.env.VITE_CURRENCY || "$";
+  const movie = item.show?.movie || {};
+  const showDateTime = item.show?.showDateTime;
+  const seatsList = Array.isArray(item.bookedSeats)
+    ? item.bookedSeats
+    : Object.keys(item.bookedSeats || {});
+
   return (
-    <>
-      <div className="flex flex-col md:flex-row">
+    <div className="flex flex-col md:flex-row justify-between w-full">
+      {/* Movie Info */}
+      <div className="flex flex-col sm:flex-row gap-4 p-2">
         <img
-          src={item.show.movie.poster_path}
-          alt=""
-          className="md:max-w-45 aspect-video h-auto object-cover object-bottom rounded"
+          src={getPosterUrl(movie.poster_path)}
+          alt={movie.title || "Movie poster"}
+          className="w-full sm:w-32 aspect-[2/3] sm:h-44 object-cover rounded-lg border border-primary/20 shrink-0 shadow-md"
         />
-        <div className="flex flex-col p-4">
-          <p className="text-lg font-semibold">{item.show.movie.title}</p>
-          <p className="text-gray-400 text-sm">
-            {timeFormat(item.show.movie.runtime)}
-          </p>
-          <p className="text-gray-400 text-sm mt-auto">
-            {dateFormat(item.show.showDateTime)}
-          </p>
+        <div className="flex flex-col justify-between py-1 min-w-0">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 ${
+                  item.isPaid
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                    : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                }`}
+              >
+                {item.isPaid ? (
+                  <>
+                    <CheckCircle2Icon className="w-3 h-3" /> Confirmed
+                  </>
+                ) : (
+                  <>
+                    <ClockIcon className="w-3 h-3" /> Pending Payment
+                  </>
+                )}
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold text-white truncate" title={movie.title}>
+              {movie.title || "Cinema Movie"}
+            </h3>
+            {movie.runtime && (
+              <p className="text-gray-400 text-xs mt-0.5">
+                Runtime: {timeFormat(movie.runtime)}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-3">
+            <p className="text-xs text-gray-400 font-medium">Show Time:</p>
+            <p className="text-sm font-semibold text-primary">
+              {showDateTime ? dateFormat(showDateTime) : "N/A"}
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col md:items-end md:text-right justify-between p-4">
-        <div className="flex items-center gap-4">
-          <p className="text-2xl font-semibold mb-3">
-            {currency}
-            {item.amount}
+      {/* Booking Details & Actions */}
+      <div className="flex flex-col justify-between p-4 md:items-end border-t md:border-t-0 md:border-l border-primary/15 shrink-0">
+        <div className="md:text-right">
+          <p className="text-2xl font-bold text-white">
+            {currency}{item.amount}
           </p>
-          {!item.isPaid && (
-            <button className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer">
-              Pay Now
+          <div className="text-xs mt-1.5 space-y-0.5">
+            <p className="text-gray-300">
+              <span className="text-gray-400">Total Seats:</span>{" "}
+              <span className="font-semibold text-white">{seatsList.length}</span>
+            </p>
+            <p className="text-gray-300">
+              <span className="text-gray-400">Seats:</span>{" "}
+              <span className="font-semibold text-primary">{seatsList.join(", ")}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Action Buttons: Edit and Cancel */}
+        <div className="flex items-center gap-2 mt-4 pt-2">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(item)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary/20 hover:bg-primary/30 text-white border border-primary/30 transition cursor-pointer"
+              title="Change time or seats"
+            >
+              <PencilIcon className="w-3.5 h-3.5 text-primary" />
+              <span>Edit</span>
+            </button>
+          )}
+
+          {onCancel && (
+            <button
+              onClick={() => onCancel(item)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 hover:text-red-300 transition cursor-pointer"
+              title="Cancel this booking"
+            >
+              <Trash2Icon className="w-3.5 h-3.5" />
+              <span>Cancel</span>
             </button>
           )}
         </div>
-        <div className="text-sm">
-          <p>
-            <span className="text-gray-400">Total seats:</span>{" "}
-            {item.bookedSeats.length}
-          </p>
-          <p>
-            <span className="text-gray-400">Seat Number:</span>{" "}
-            {item.bookedSeats.join(", ")}
-          </p>
-        </div>
       </div>
-    </>
+    </div>
   );
-}
+};
 
-export default BookingsCard
+export default BookingsCard;

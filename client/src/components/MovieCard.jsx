@@ -3,14 +3,20 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import timeFormat from "../lib/timeFormat";
 
-const MovieCard = ({movie}) => {
+const MovieCard = ({ movie }) => {
+  const getPosterUrl = (path) => {
+    if (!path) return "";
+    return path.startsWith("http")
+      ? path
+      : `https://image.tmdb.org/t/p/w500${path}`;
+  };
   const navigate = useNavigate();
   return (
     <div className="flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-66">
       <img
-        src={movie.backdrop_path}
+        src={getPosterUrl(movie.poster_path)}
         alt=""
-        className="rounded-lg h-52 w-full object-cover object-center cursor-pointer"
+        className="rounded-lg aspect-2/3 w-full object-cover object-center cursor-pointer"
         onClick={() => {
           navigate(`/movies/${movie._id}`);
           scrollTo(0, 0);
@@ -21,7 +27,7 @@ const MovieCard = ({movie}) => {
       <p className="text-sm text-gray-400 mt-2">
         {new Date(movie.release_date).getFullYear()} ●{" "}
         {movie.genres
-          .slice(0, 2)
+          ?.slice(0, 2)
           .map((genre) => genre.name)
           .join(" | ")}{" "}
         ● {timeFormat(movie.runtime)}
@@ -40,7 +46,7 @@ const MovieCard = ({movie}) => {
 
         <p className="flex items-center gap-1 text-sm text-gray-400 mt-1 pr-1">
           <StarIcon className="w-4 h-4 text-primary fill-primary" />
-          {movie.vote_average.toFixed(1)}
+          {movie.vote_average?.toFixed(1)}
         </p>
       </div>
     </div>
