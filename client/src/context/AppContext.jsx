@@ -138,7 +138,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -205,6 +205,7 @@ export const AppProvider = ({ children }) => {
     axios,
     fetchIsAdmin,
     user,
+    isLoaded,
     getToken,
     navigate,
     isAdmin,

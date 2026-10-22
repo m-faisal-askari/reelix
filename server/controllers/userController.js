@@ -1,11 +1,17 @@
 import { clerkClient } from "@clerk/express";
 import Booking from "../models/Booking.js";
 import Movie from "../models/Movie.js";
+import Show from "../models/Show.js";
 
 // API controller function to get user bookings
 export const getUserBookings = async (req, res) => {
   try {
-    const user = req.auth().userId;
+    const authData = req.auth ? req.auth() : null;
+    const user = authData?.userId;
+
+    if (!user) {
+      return res.json({ success: true, bookings: [] });
+    }
 
     const bookings = await Booking.find({ user })
       .populate({
@@ -14,10 +20,10 @@ export const getUserBookings = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, bookings });
+    res.json({ success: true, bookings: bookings || [] });
   } catch (error) {
-    console.error(error.message);
-    res.json({ success: false, message: error.message });
+    console.error("getUserBookings error:", error.message);
+    res.json({ success: false, message: error.message, bookings: [] });
   }
 };
 
