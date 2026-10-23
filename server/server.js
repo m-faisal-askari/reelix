@@ -12,7 +12,7 @@ import adminRouter from "./routes/adminRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
 // High-performance gzip/brotli compression middleware
 app.use(compression());
@@ -34,8 +34,8 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(port, () => {
-      console.log(`Server is listening at http://localhost:${port}`);
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`Server is listening at http://0.0.0.0:${port}`);
     });
   } catch (error) {
     console.error("Server startup failed:", error.message);
