@@ -7,6 +7,9 @@ import {
   isAdmin,
   updateShow,
   deleteShow,
+  getHero,
+  updateHero,
+  resetHero,
 } from "../controllers/adminController.js";
 import {
   updateAdminBooking,
@@ -25,5 +28,10 @@ adminRouter.delete("/show/:id", protectAdmin, deleteShow);
 // Admin Booking Management
 adminRouter.put("/booking/:id", protectAdmin, updateAdminBooking);
 adminRouter.delete("/booking/:id", protectAdmin, deleteAdminBooking);
+
+// Admin Hero Section Management
+adminRouter.get("/hero", protectAdmin, getHero);
+adminRouter.put("/hero", protectAdmin, updateHero);
+adminRouter.post("/hero/reset", protectAdmin, resetHero);
 
 export default adminRouter;

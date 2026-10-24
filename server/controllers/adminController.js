@@ -2,6 +2,7 @@ import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
 import User from "../models/User.js";
 import Movie from "../models/Movie.js";
+import Hero from "../models/Hero.js";
 
 // API to check if user is admin
 export const isAdmin = async (req, res) => {
@@ -158,6 +159,115 @@ export const deleteShow = async (req, res) => {
     res.json({ success: true, message: "Show deleted successfully" });
   } catch (error) {
     console.error(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// API to get Hero section data
+export const getHero = async (req, res) => {
+  try {
+    let hero = await Hero.findOne().sort({ updatedAt: -1 });
+
+    if (!hero) {
+      hero = await Hero.create({
+        title: "Avengers:\nDoomsday",
+        image: "/Avengers-Doomsday-All-Teasers-Our-Theories-Marvel-MCU.jpg",
+        logo: "",
+        overview:
+          "Heroes from three different worlds must unite when they're thrust together to confront a catastrophic danger that could destroy everything they know.",
+        runtime: "2h 34m",
+        releaseYear: "2026",
+        genres: "Action | Adventure | Sci-Fi",
+        buttonText: "Explore Movies",
+        buttonLink: "/movies",
+      });
+    }
+
+    res.json({ success: true, hero });
+  } catch (error) {
+    console.error("getHero error:", error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// API to update Hero section data
+export const updateHero = async (req, res) => {
+  try {
+    const {
+      title,
+      image,
+      logo,
+      overview,
+      runtime,
+      releaseYear,
+      genres,
+      buttonText,
+      buttonLink,
+    } = req.body;
+
+    let hero = await Hero.findOne().sort({ updatedAt: -1 });
+
+    const updateFields = {
+      ...(title !== undefined && { title }),
+      ...(image !== undefined && { image }),
+      ...(logo !== undefined && { logo }),
+      ...(overview !== undefined && { overview }),
+      ...(runtime !== undefined && { runtime }),
+      ...(releaseYear !== undefined && { releaseYear }),
+      ...(genres !== undefined && { genres }),
+      ...(buttonText !== undefined && { buttonText }),
+      ...(buttonLink !== undefined && { buttonLink }),
+    };
+
+    if (hero) {
+      hero = await Hero.findByIdAndUpdate(hero._id, updateFields, {
+        new: true,
+      });
+    } else {
+      hero = await Hero.create(updateFields);
+    }
+
+    res.json({
+      success: true,
+      message: "Hero section updated successfully",
+      hero,
+    });
+  } catch (error) {
+    console.error("updateHero error:", error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// API to reset Hero section data to default
+export const resetHero = async (req, res) => {
+  try {
+    const defaultData = {
+      title: "Avengers:\nDoomsday",
+      image: "/Avengers-Doomsday-All-Teasers-Our-Theories-Marvel-MCU.jpg",
+      logo: "",
+      overview:
+        "Heroes from three different worlds must unite when they're thrust together to confront a catastrophic danger that could destroy everything they know.",
+      runtime: "2h 34m",
+      releaseYear: "2026",
+      genres: "Action | Adventure | Sci-Fi",
+      buttonText: "Explore Movies",
+      buttonLink: "/movies",
+    };
+
+    let hero = await Hero.findOne().sort({ updatedAt: -1 });
+    if (hero) {
+      hero = await Hero.findByIdAndUpdate(hero._id, defaultData, { new: true });
+    } else {
+      hero = await Hero.create(defaultData);
+    }
+
+    res.json({
+      success: true,
+      message: "Hero section reset to default",
+      hero,
+    });
+  } catch (error) {
+    console.error("resetHero error:", error.message);
     res.json({ success: false, message: error.message });
   }
 };

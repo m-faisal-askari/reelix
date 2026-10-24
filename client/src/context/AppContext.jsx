@@ -4,11 +4,24 @@ import { useAuth, useUser } from "@clerk/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { initialTheaters } from "../assets/theatersData";
-import { dummyTrailers } from "../assets/assets";
+import { assets, dummyTrailers } from "../assets/assets";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
 export const AppContext = createContext();
+
+export const initialHeroData = {
+  title: "Avengers:\nDoomsday",
+  image: "/Avengers-Doomsday-All-Teasers-Our-Theories-Marvel-MCU.jpg",
+  logo: assets.marvelLogo,
+  overview:
+    "Heroes from three different worlds must unite when they're thrust together to confront a catastrophic danger that could destroy everything they know.",
+  runtime: "2h 34m",
+  releaseYear: "2026",
+  genres: "Action | Adventure | Sci-Fi",
+  buttonText: "Explore Movies",
+  buttonLink: "/movies",
+};
 
 export const initialTrailersData = [
   {
@@ -138,6 +151,83 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Hero Section State
+  const [heroData, setHeroData] = useState(() => {
+    try {
+      const saved = localStorage.getItem("reelix_hero_data");
+      return saved ? { ...initialHeroData, ...JSON.parse(saved) } : initialHeroData;
+    } catch {
+      return initialHeroData;
+    }
+  });
+
+  const fetchHeroData = async () => {
+    try {
+      const { data } = await axios.get("/api/show/hero");
+      if (data.success && data.hero) {
+        const merged = {
+          ...initialHeroData,
+          ...data.hero,
+          logo: data.hero.logo || initialHeroData.logo,
+        };
+        setHeroData(merged);
+        try {
+          localStorage.setItem("reelix_hero_data", JSON.stringify(merged));
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    } catch (error) {
+      console.warn("Could not fetch hero data from server, using local data:", error.message);
+    }
+  };
+
+  const updateHeroData = async (updatedFields) => {
+    const updated = { ...heroData, ...updatedFields };
+    setHeroData(updated);
+    try {
+      localStorage.setItem("reelix_hero_data", JSON.stringify(updated));
+    } catch (err) {
+      console.error("Failed to save hero data to localStorage:", err);
+    }
+
+    try {
+      const token = await getToken();
+      if (token) {
+        await axios.put("/api/admin/hero", updated, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    } catch (err) {
+      console.warn("Could not persist hero data to backend:", err.message);
+    }
+    return updated;
+  };
+
+  const resetHeroData = async () => {
+    setHeroData(initialHeroData);
+    try {
+      localStorage.setItem("reelix_hero_data", JSON.stringify(initialHeroData));
+    } catch (err) {
+      console.error(err);
+    }
+
+    try {
+      const token = await getToken();
+      if (token) {
+        await axios.post(
+          "/api/admin/hero/reset",
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+    } catch (err) {
+      console.warn("Could not reset hero on server:", err.message);
+    }
+  };
+
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const location = useLocation();
@@ -191,6 +281,7 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     fetchShows();
+    fetchHeroData();
   }, []);
 
   useEffect(() => {
@@ -220,6 +311,10 @@ export const AppProvider = ({ children }) => {
     updateTrailer,
     removeTrailer,
     resetTrailers,
+    heroData,
+    fetchHeroData,
+    updateHeroData,
+    resetHeroData,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

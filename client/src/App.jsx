@@ -25,6 +25,7 @@ const NotFound = lazy(() => import("./components/NotFound"));
 // Heavy Admin panel completely isolated and lazy-loaded
 const Layout = lazy(() => import("./pages/admin/Layout.jsx"));
 const Dashboard = lazy(() => import("./pages/admin/Dashboard.jsx"));
+const AdminHero = lazy(() => import("./pages/admin/Hero.jsx"));
 const ListShows = lazy(() => import("./pages/admin/ListShows.jsx"));
 const ListBookings = lazy(() => import("./pages/admin/ListBookings.jsx"));
 const AddShows = lazy(() => import("./pages/admin/AddShows.jsx"));
@@ -65,6 +66,7 @@ const App = () => {
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="hero" element={<AdminHero />} />
             <Route path="list-shows" element={<ListShows />} />
             <Route path="list-bookings" element={<ListBookings />} />
             <Route path="add-shows" element={<AddShows />} />

@@ -8,6 +8,7 @@ import {
   SearchIcon,
   Building2,
   ClapperboardIcon,
+  SparklesIcon,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -20,6 +21,7 @@ const AdminSidebar = () => {
 
   const adminNavLinks = [
     { name: "Dashboard", path: "/admin", icon: LayoutDashboardIcon },
+    { name: "Hero Section", path: "/admin/hero", icon: SparklesIcon },
     { name: "Add Shows", path: "/admin/add-shows", icon: PlusSquareIcon },
     { name: "Search TMDB", path: "/admin/search-movies", icon: SearchIcon },
     { name: "List Shows", path: "/admin/list-shows", icon: ListIcon },
